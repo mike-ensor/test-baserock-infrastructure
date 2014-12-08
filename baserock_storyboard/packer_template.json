@@ -40,13 +40,34 @@
             "destination": "/srv",
             "only": ["production"]
         },
-        {   "type": "shell",
+        {
+            "type": "shell",
+            "inline": [
+                "sudo yum install -y libselinux-python",
+                "sudo ansible localhost -m selinux -a state=disabled",
+                "sudo setenforce 0",
+            ],
+            "only": ["production"]
+        },
+        {
+            "type": "shell",
             "inline": [
                 "cd /srv/baserock_storyboard",
                 "sudo /usr/local/bin/puppet module build puppet-storyboard",
                 "sudo /usr/local/bin/puppet module install puppet-storyboard/pkg/openstack-storyboard-*.*.*.tar.gz",
                 "sudo /usr/local/bin/puppet module install camptocamp-openssl"
             ]
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "sudo mkdir /var/log/journal",
+                "sudo yum -f install rabbitmq-server"
+            ]
+        {
+            "type": "shell",
+            "inline": [ "sync; sync; sleep 10; sync" ],
+            "only": ["production"]
         }
     ],
     "post-processors": [

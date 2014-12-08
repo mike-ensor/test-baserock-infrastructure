@@ -1,0 +1,20 @@
+# Projects defined for Baserock Storyboard
+
+# If you update this list, you'll need to log into storyboard.baserock.org and
+# run the following:
+#
+#  storyboard-db-manage \
+#     --config-file /etc/storyboard/storyboard.conf
+#     load_projects ./projects.yaml
+
+- project: baserock/definitions
+  description: Baserock reference system definitions
+  use-storyboard: true
+
+- project: baserock/morph
+  description: Morph build tool
+  use-storyboard: true
+
+- project: baserock/infrastructure
+  description: baserock.org infrastructure
+  use-storyboard: true

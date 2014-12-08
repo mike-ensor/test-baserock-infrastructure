@@ -5,7 +5,7 @@ node default {
 
   # This directory doesn't seem to exist by default in Fedora
   file { '/etc/ssl/private':
-    ensure => directory
+    ensure => directory,
     before => Class['storyboard::cert']
   }
 
@@ -20,12 +20,21 @@ node default {
   }
 
   class { 'storyboard::cert':
-    ssl_cert_file => '/tmp/storyboard_dummy.crt',
-    ssl_key_file => '/tmp/storyboard_dummy.key',
-    ssl_ca_file => '/etc/ssl/certs/ca-bundle.crt'
+    ssl_cert_file => '/etc/ssl/certs/storyboard_dummy.crt',
+    ssl_key_file => '/etc/ssl/private/storyboard_dummy.key',
   }
 
-  # need class storyboard::rabbitmq too
+  class { 'storyboard::rabbit':
+    rabbitmq_user          => 'storyboard',
+    # This RabbitMQ instance isn't exposed outside this machine so it doesn't
+    # need a real password.
+    rabbitmq_user_password => 'insecure'
+  }
+
+  class { '::storyboard::workers':
+    worker_count => 5,
+    use_systemd => true
+  }
 
   class { 'storyboard::application':
     openid_url => 'http://openid.baserock.org/',
@@ -42,5 +51,9 @@ node default {
     rabbitmq_user => 'storyboard',
     # FIXME: need to read this from a file in /var/lib
     rabbitmq_user_password => 'storyboard_insecure'
+  }
+
+  class { 'storyboard::load_projects':
+    source => 'projects.yaml'
   }
 }
