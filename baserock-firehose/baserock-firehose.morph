@@ -1,0 +1,11 @@
+name: baserock-firehose
+kind: cluster
+systems:
+  - morph: systems/build-system-x86_64.morph
+    deploy:
+      baserock-firehose:
+        type: openstack
+        location: http://compute.datacentred.io:5000/v2.0
+        OPENSTACK_IMAGENAME: baserock-firehose
+        DISK_SIZE: 3G
+        HOSTNAME: baserock-firehose
