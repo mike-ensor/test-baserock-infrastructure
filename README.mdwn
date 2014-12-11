@@ -157,6 +157,47 @@ To deploy the production version:
         --nic='net-id=d079fa3e-2558-4bcb-ad5a-279040c202b5'
 
 
+Firehose
+--------
+
+Firehose deployment isn't automated yet. Here are instructions on how to do it
+manually:
+
+In a 'build' machine in the cloud:
+
+    morph build systems/build-system-x86_64.morph
+    morph deploy baserock-firehose/baserock-firehose.morph
+
+Instatiate this image and SSH into it.
+
+    git clone git://git.baserock.org/baserock/baserock/firehose
+    git checkout baserock/perryl/install-firehose
+    python ./setup.py install 
+    adduser firehose -s /bin/false -D
+    sudo -u firehose -- ssh-keygen -C 'firehose@baserock.org' -N ''
+
+Create an account on the Gerrit instance where Firehose will be pushing:
+
+    ssh -p 29418 you@gerrit.baserock.org gerrit \
+        create-account --group "'Non-Interactive Users'" \
+        --ssh-key xxxx --full-name "'Firehose integration tool'" \
+        --email='firehose@firehose.baserock.org' \
+        firehose
+
+Test that the Firehose user can connect to Gerrit (this should give you a help
+message if successful, or a 'Permission denied' error otherwise):
+
+    sudo -u firehose -- ssh -p 29418 firehose@gerrit.baserock.org gerrit
+
+Install the configuration files and systemd units from the baserock-firehose/
+directory (FIXME: they're not there yet)
+
+Run:
+
+    systemctl enable firehose.timer
+    systemctl start firehose.timer
+
+
 Deployment to DataCentred
 -------------------------
 
