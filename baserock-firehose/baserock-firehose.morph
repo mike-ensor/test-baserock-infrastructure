@@ -5,7 +5,7 @@ systems:
     deploy:
       baserock-firehose:
         type: openstack
-        location: http://compute.datacentred.io:5000/v2.0
+        location: https://compute.datacentred.io:5000/v2.0
         OPENSTACK_IMAGENAME: baserock-firehose
         DISK_SIZE: 3G
         HOSTNAME: baserock-firehose
