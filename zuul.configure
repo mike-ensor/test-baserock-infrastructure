@@ -1,0 +1,191 @@
+#!/bin/sh
+#
+# Copyright (C) 2014 Codethink Limited
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+# This is a "morph deploy" configuration extension to fully configure
+# a Mason instance at deployment time. It uses the following variables
+# from the environment:
+#
+#   * TROVE_ID
+#   * TROVE_HOST
+#   * ARTIFACT_CACHE_SERVER
+#
+#   * GERRIT_USER
+#   * GERRIT_HOSTNAME
+#   * GERRIT_HTTP_PORT
+#   * GERRIT_GIT_PORT
+#   * GERRIT_SSH_KEY
+#   * GERRIT_SSH_KEY_PATH
+#
+#   * GEARMAN_HOST
+#   * GEARMAN_PORT
+#   * START_GEARMAN
+#
+#   * MASON_CLUSTER_MORPHOLOGY
+#   * MASON_ARCHITECTURE
+#   * MASON_TEST_HOSTS
+#   * MASON_DISTBUILD_CONTROLLERS
+#   * MASON_TEST_INFRASTRUCTURE_TYPE
+#   * MASON_UPSTREAM_TROVE
+#
+#   * OPENSTACK_NETWORK_ID
+#   * OPENSTACK_USER
+#   * OPENSTACK_PASSWORD
+#   * OPENSTACK_TENANT_ID
+#   * OPENSTACK_TENANT_NAME
+#   * OPENSTACK_AUTH_URL
+
+set -e
+
+##########################################################################
+# Copy Mason files into root filesystem
+##########################################################################
+
+ROOT="$1"
+
+mkdir -p "$ROOT"/usr/lib/mason
+cp zuul/os-init-script "$ROOT"/usr/lib/mason/os-init-script
+
+cp zuul/mason-setup.service "$ROOT"/etc/systemd/system/mason-setup.service
+cp zuul/zuul-server.service "$ROOT"/etc/systemd/system/zuul-server.service
+cp zuul/zuul-merger.service "$ROOT"/etc/systemd/system/zuul-merger.service
+cp zuul/turbo-hipster.service "$ROOT"/etc/systemd/system/turbo-hipster.service
+cp zuul/lighttpd.service "$ROOT"/etc/systemd/system/lighttpd.service
+
+                        
+# HACK AROUND BAD SYSTEMD
+cp zuul/10-dhcp.network "$ROOT"/etc/systemd/network/10-dhcp.network
+                        
+
+##########################################################################
+# Create required directories
+##########################################################################
+
+mkdir -p "$ROOT"/var/www/logs
+mkdir -p "$ROOT"/var/lib/zuul
+mkdir -p "$ROOT"/var/log/zuul
+
+##########################################################################
+# Copy files needed for Ansible configuration
+##########################################################################
+
+mkdir -p "$ROOT/usr/share/mason-setup"
+mkdir -p "$ROOT/usr/lib/mason-setup"
+
+cp zuul/share/* "$ROOT/usr/share/mason-setup"
+cp -r zuul/ansible "$ROOT/usr/lib/mason-setup/"
+
+ln -s ../mason-setup.service "$ROOT"/etc/systemd/system/multi-user.target.wants/mason-setup.service
+
+##########################################################################
+# Check variables
+##########################################################################
+
+if [ -n "$MASON_GENERIC" ]; then
+    echo Not configuring Mason, it will be generic
+    exit 0
+fi
+
+if [ -z "$MASON_CLUSTER_MORPHOLOGY" -a \
+     -z "$MASON_ARCHITECTURE" -a \
+     -z "$MASON_TEST_HOSTS" -a \
+     -z "$MASON_DISTBUILD_CONTROLLERS" -a \
+     -z "$MASON_TEST_INFRASTRUCTURE_TYPE" -a \
+     -z "$MASON_UPSTREAM_TROVE" ]; then
+    # No Mason options defined, do nothing.
+    exit 0
+fi
+
+if [ -z "$TROVE_ID" -o \
+     -z "$TROVE_HOST" -o \
+     -z "$ARTIFACT_CACHE_SERVER" -o \
+     -z "$GERRIT_USER" -o \
+     -z "$GERRIT_HOSTNAME" -o \
+     -z "$GERRIT_HTTP_PORT" -o \
+     -z "$GERRIT_GIT_PORT" -o \
+     -z "$GERRIT_SSH_KEY" -o \
+     -z "$GERRIT_SSH_KEY_PATH" -o \
+     -z "$GEARMAN_HOST" -o \
+     -z "$GEARMAN_PORT" -o \
+     -z "$START_GEARMAN" -o \
+     -z "$MASON_CLUSTER_MORPHOLOGY" -o \
+     -z "$MASON_ARCHITECTURE" -o \
+     -z "$MASON_TEST_HOSTS" -o \
+     -z "$MASON_DISTBUILD_CONTROLLERS" -o \
+     -z "$MASON_TEST_INFRASTRUCTURE_TYPE" -o \
+     -z "$MASON_UPSTREAM_TROVE" ]; then
+    echo Some options required for Mason were defined, but not all.
+    exit 1
+fi
+
+##########################################################################
+# Copy SSH keys into the system
+##########################################################################
+
+mkdir -p $(dirname "$ROOT$GERRIT_SSH_KEY_PATH")
+cp -a "$GERRIT_SSH_KEY" "$ROOT$GERRIT_SSH_KEY_PATH"
+cp -a "$GERRIT_SSH_KEY".pub "$ROOT$GERRIT_SSH_KEY_PATH".pub
+cp -a zuul/ssh-config "$ROOT"/.ssh/config
+
+##########################################################################
+# Generate config variable shell snippet
+##########################################################################
+
+MASON_DATA="$ROOT/etc/mason"
+mkdir -p "$MASON_DATA"
+
+python <<'EOF' >"$MASON_DATA/mason.conf"
+import os, sys, yaml
+
+mason_configuration={
+    'TROVE_ID': os.environ['TROVE_ID'],
+    'TROVE_HOST': os.environ['TROVE_HOST'],
+    'ARTIFACT_CACHE_SERVER': os.environ['ARTIFACT_CACHE_SERVER'],
+    'GERRIT_USER': os.environ['GERRIT_USER'],
+    'GERRIT_HOSTNAME': os.environ['GERRIT_HOSTNAME'],
+    'GERRIT_HTTP_PORT': os.environ['GERRIT_HTTP_PORT'],
+    'GERRIT_GIT_PORT': os.environ['GERRIT_GIT_PORT'],
+    'GERRIT_SSH_KEY_PATH': os.environ['GERRIT_SSH_KEY_PATH'],
+    'GEARMAN_HOST': os.environ['GEARMAN_HOST'],
+    'GEARMAN_PORT': os.environ['GEARMAN_PORT'],
+    'START_GEARMAN': os.environ['START_GEARMAN'],
+    'MASON_CLUSTER_MORPHOLOGY': os.environ['MASON_CLUSTER_MORPHOLOGY'],
+    'MASON_ARCHITECTURE': os.environ['MASON_ARCHITECTURE'],
+    'MASON_TEST_HOSTS': os.environ['MASON_TEST_HOSTS'],
+    'MASON_DISTBUILD_CONTROLLERS': os.environ['MASON_DISTBUILD_CONTROLLERS'],
+    'MASON_TEST_INFRASTRUCTURE_TYPE': os.environ['MASON_TEST_INFRASTRUCTURE_TYPE'],
+    'MASON_UPSTREAM_TROVE': os.environ['MASON_UPSTREAM_TROVE'],
+}
+
+yaml.dump(mason_configuration, sys.stdout, default_flow_style=False)
+EOF
+
+if [ "$MASON_TEST_INFRASTRUCTURE_TYPE" = "openstack" ]; then
+    python <<'EOF' >>"$MASON_DATA/mason.conf"
+import os, sys, yaml
+
+openstack_credentials={
+    'OPENSTACK_NETWORK_ID': os.environ['OPENSTACK_NETWORK_ID'],
+    'OS_USERNAME': os.environ['OPENSTACK_USER'],
+    'OS_TENANT_NAME': os.environ['OPENSTACK_TENANT'],
+    'OS_TENANT_ID': os.environ['OPENSTACK_TENANT_ID'],
+    'OS_AUTH_URL': os.environ['OPENSTACK_AUTH_URL'],
+    'OS_PASSWORD': os.environ['OPENSTACK_PASSWORD'],
+}
+
+yaml.dump(openstack_credentials, sys.stdout, default_flow_style=False)
+EOF
+fi

@@ -3,6 +3,7 @@ kind: stratum
 description: A stratum with OpenStack clients, for OpenStack deployments.
 build-depends:
 - morph: strata/tools.morph
+- morph: strata/python-tools.morph
 chunks:
 - name: jsonschema
   repo: upstream:jsonschema
@@ -28,15 +29,14 @@ chunks:
   - python-json-pointer
   - python-json-patch
 - name: python-prettytable
-  morph: strata/openstack-clients/python-prettytable.morph
   repo: upstream:python-prettytable
-  ref: 941133673e5a0003cd5ce1b6db2a51cf3307d9c1
-  unpetrify-ref: baserock/morph
+  ref: bea6a50e4da00074b35b57232771cea58b89b3e0
+  unpetrify-ref: 0.7.2-RELEASE
   build-depends: []
 - name: pbr
   repo: upstream:pbr
-  ref: 510ee9e9dcb94c5884c215fa3535a1f77f3d2a51
-  unpetrify-ref: baserock/morph
+  ref: e1b98f578a0f94a791210dd48530e2fed43fbe61
+  unpetrify-ref: 0.9.0
   build-depends: []
 - name: argparse
   repo: upstream:argparse
@@ -80,6 +80,11 @@ chunks:
   unpetrify-ref: baserock/morph
   build-depends:
   - pytz
+- name: python-futures
+  repo: upstream:python-packages/futures
+  ref: dc5614a78967bf3f2213b3f272da08ea534fb589
+  unpetrify-ref: master
+  build-depends: []
 - name: python-keystoneclient
   repo: upstream:python-keystoneclient
   ref: 21cc66a850c5ea1d2ffffb655da0c452b919ed3b
@@ -115,3 +120,14 @@ chunks:
   - python-requests
   - simplejson
   - babel
+- name: python-swiftclient
+  repo: upstream:openstack/python-swiftclient
+  ref: 79fb53190e3087666d0357a5964645c0cba7fcf0
+  unpetrify-ref: master
+  build-depends:
+  - python-prettytable
+  - pbr
+  - argparse
+  - python-futures
+  - python-requests
+  - simplejson
