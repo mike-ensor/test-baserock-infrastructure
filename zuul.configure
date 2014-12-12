@@ -41,12 +41,12 @@
 #   * MASON_TEST_INFRASTRUCTURE_TYPE
 #   * MASON_UPSTREAM_TROVE
 #
-#   * OPENSTACK_NETWORK_ID
-#   * OPENSTACK_USER
-#   * OPENSTACK_PASSWORD
-#   * OPENSTACK_TENANT_ID
-#   * OPENSTACK_TENANT_NAME
-#   * OPENSTACK_AUTH_URL
+#   * MASON_OPENSTACK_NETWORK_ID
+#   * MASON_OPENSTACK_USER
+#   * MASON_OPENSTACK_PASSWORD
+#   * MASON_OPENSTACK_TENANT_ID
+#   * MASON_OPENSTACK_TENANT_NAME
+#   * MASON_OPENSTACK_AUTH_URL
 
 set -e
 
@@ -178,12 +178,12 @@ if [ "$MASON_TEST_INFRASTRUCTURE_TYPE" = "openstack" ]; then
 import os, sys, yaml
 
 openstack_credentials={
-    'OPENSTACK_NETWORK_ID': os.environ['OPENSTACK_NETWORK_ID'],
-    'OS_USERNAME': os.environ['OPENSTACK_USER'],
-    'OS_TENANT_NAME': os.environ['OPENSTACK_TENANT'],
-    'OS_TENANT_ID': os.environ['OPENSTACK_TENANT_ID'],
-    'OS_AUTH_URL': os.environ['OPENSTACK_AUTH_URL'],
-    'OS_PASSWORD': os.environ['OPENSTACK_PASSWORD'],
+    'OPENSTACK_NETWORK_ID': os.environ['MASON_OPENSTACK_NETWORK_ID'],
+    'OS_USERNAME': os.environ['MASON_OPENSTACK_USER'],
+    'OS_TENANT_NAME': os.environ['MASON_OPENSTACK_TENANT'],
+    'OS_TENANT_ID': os.environ['MASON_OPENSTACK_TENANT_ID'],
+    'OS_AUTH_URL': os.environ['MASON_OPENSTACK_AUTH_URL'],
+    'OS_PASSWORD': os.environ['MASON_OPENSTACK_PASSWORD'],
 }
 
 yaml.dump(openstack_credentials, sys.stdout, default_flow_style=False)
