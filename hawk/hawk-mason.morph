@@ -5,11 +5,14 @@ description: |
 systems:
 - morph: systems/build-system-armv7lhf-highbank.morph
   deploy-defaults:
+    ARTIFACT_CACHE_SERVER: ct-mcr-1.ducie.codethink.co.uk
     CONTROLLERHOST: 172.17.1.61
     DISK_SIZE: 4G
     DISTBUILD_CONTROLLER: false
     DISTBUILD_WORKER: true
     INSTALL_FILES: distbuild/manifest
+    OPENSTACK_NETWORK_ID: fuckyou
+    TEST_INFRASTRUCTURE_TYPE: none
     TROVE_HOST: ct-mcr-1.ducie.codethink.co.uk
     TROVE_ID: ct-mcr-1
     WORKER_SSH_KEY: hawk/worker.key
