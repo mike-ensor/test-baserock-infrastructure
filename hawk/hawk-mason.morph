@@ -1,0 +1,26 @@
+name: hawk-mason
+kind: cluster
+description: |
+  Cluster for the `hawk` server in Codethink Ducie House office.
+systems:
+- morph: systems/build-system-armv7lhf-highbank.morph
+  deploy-defaults:
+    CONTROLLERHOST: 172.17.1.61
+    DISK_SIZE: 4G
+    DISTBUILD_CONTROLLER: false
+    DISTBUILD_WORKER: true
+    INSTALL_FILES: distbuild/manifest
+    TROVE_HOST: ct-mcr-1.ducie.codethink.co.uk
+    TROVE_ID: ct-mcr-1
+    WORKER_SSH_KEY: hawk/worker.key
+  deploy:
+    build-controller:
+      type: rawdisk
+      location: hawk15.img
+      DISTBUILD_CONTROLLER: true
+      HOSTNAME: hawk-mason-controller
+      MASON_CLUSTER_MORPHOLOGY: clusters/ci.morph
+      MASON_DEFINITIONS_REF: master
+      MASON_DISTBUILD_ARCH: armv7lhf
+      MASON_TEST_HOST: vm-user@vm-host:/vm-path/
+      WORKERS: 172.17.1.61
