@@ -1,0 +1,17 @@
+name: databases
+kind: stratum
+description: some popular databases
+build-depends:
+- morph: strata/foundation.morph
+chunks:
+- name: haste-server
+  repo: git://github.com/palvarez89/haste-server.git
+  ref: 2a1edbe6d440bf2a737c920b157cad6aed93d3f2
+  unpetrify-ref: baserock
+  build-depends: []
+- name: redis
+  morph: hastebin/strata/haste-server/redis.morph
+  repo: upstream:redis
+  ref: 9ee59fca9c5c429185d35779c2d5db64005091b0
+  unpetrify-ref: baserock/3.0
+  build-depends: []
