@@ -1,0 +1,12 @@
+name: irclogs-kvm
+kind: cluster
+systems:
+- morph: irclogs/systems/irclogs-x86_64.morph
+  deploy:
+    my-kvm-system:
+      type: kvm
+      location: kvm+ssh://pedro@192.168.122.1/irclogs/home/pedro/baserock/irclogs.img
+      DISK_SIZE: 4G
+      RAM_SIZE: 1G
+      VCPUS: 1
+      HOSTNAME: paste
