@@ -1,0 +1,15 @@
+name: irclogs-datacentred
+kind: cluster
+systems:
+- morph: irclogs/systems/irclogs-x86_64.morph
+  deploy:
+    irclogs-dc:
+      type: openstack
+      location: http://compute.datacentred.io:5000/v2.0/
+      DISK_SIZE: 4G
+      HOSTNAME: irclogs
+      CLOUD_INIT: yes
+      KERNEL_ARGS: console=ttyS0 console=tty0
+      OPENSTACK_USER: openstack-user
+      OPENSTACK_TENANT: openstack-tenant
+      OPENSTACK_IMAGENAME: irclogs
